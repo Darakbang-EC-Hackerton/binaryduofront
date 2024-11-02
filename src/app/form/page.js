@@ -71,26 +71,45 @@ function QuestionPoolPage() {
   const handleSubmit = async () => {
     try {
       setLoading(true);
-      await new Promise(resolve => setTimeout(resolve, 1000));
       
-      const mockResult = {
-        inviterId: inviterId || 'default',
-        inviteeId: answers.name,
-        result: {
-          height: answers.height,
-          weight: answers.weight,
-          workoutCount: answers.workoutCount,
-          smokingCount: answers.smokingCount,
-          drinkingCount: answers.drinkingCount,
-          name: answers.name
-        }
-      };
+      // 서버에 데이터 전송 및 matchId 수신
+      const response = await fetch('https://example.com/api/submit', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          inviterId: inviterId,
+          inviteeId: answers.name,
+          inviteeData: {
+            height: answers.height,
+            weight: answers.weight,
+            workoutCount: answers.workoutCount,
+            smokingCount: answers.smokingCount,
+            drinkingCount: answers.drinkingCount,
+            name: answers.name
+          }
+        })
+      });
 
+      if (!response.ok) {
+        throw new Error('Failed to submit data');
+      }
+
+      const data = await response.json();
+      const { matchId } = data;  // 서버에서 받은 matchId
+
+      // 실제 API가 없는 경우를 위한 임시 matchId
+      const tempMatchId = 'match_' + Date.now();
+      
+      // URL 쿼리 파라미터 구성
       const queryParams = new URLSearchParams({
-        inviterId: mockResult.inviterId,
-        inviteeId: mockResult.inviteeId,        
+        inviterId: inviterId,
+        inviteeId: answers.name,
+        matchId: matchId || tempMatchId  // 실제 matchId가 없으면 임시 ID 사용
       }).toString();
 
+      // battle 페이지로 이동
       router.push(`/battle?${queryParams}`);
       
     } catch (error) {
