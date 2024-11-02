@@ -1,3 +1,4 @@
+import { Provider } from "@/components/ui/provider"
 import localFont from "next/font/local";
 import "./globals.css";
 
@@ -19,11 +20,15 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en">
+    <html suppressHydrationWarning>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        {children}
+          <div className="container px-4 py-4">
+        <Provider>
+            {children}
+        </Provider>
+          </div>
       </body>
     </html>
   );
