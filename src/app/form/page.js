@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { keyframes } from '@emotion/react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Cookies from 'js-cookie';
@@ -27,7 +27,8 @@ import {
   Tooltip,
 } from '@chakra-ui/react';
 
-function QuestionPoolPage() {
+// Form 컴포넌트 분리
+function FormContent() {
   const searchParams = useSearchParams();
   const inviterId = searchParams.get('inviterId');
   const [answers, setAnswers] = useState({
@@ -625,4 +626,15 @@ function QuestionPoolPage() {
   );
 }
 
-export default QuestionPoolPage;
+// 메인 페이지 컴포넌트
+export default function QuestionPoolPage() {
+  return (
+    <Suspense fallback={
+      <Box minH="100vh" display="flex" alignItems="center" justifyContent="center" bg="black">
+        <Text color="red.300" fontSize="xl">로딩 중...</Text>
+      </Box>
+    }>
+      <FormContent />
+    </Suspense>
+  );
+}

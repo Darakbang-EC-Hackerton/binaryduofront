@@ -69,7 +69,7 @@ const mockMatchData = {
     weight: "감자",
     exerciseCount: "감자",
     smokeCount: "준서",
-    drinkingCount: "준서",
+    drinkCount: "준서",
   },
   winnerInfo: {    
       name: "준서",
@@ -77,7 +77,7 @@ const mockMatchData = {
       weight: "75kg",
       exerciseCount: 10,
       smokeCount: 3,
-      drinkingCount: 3
+      drinkCount: 3
   },
   loserInfo: {
       name: "감자",
@@ -85,7 +85,7 @@ const mockMatchData = {
       weight: "65kg",
       exerciseCount: 8,
       smokeCount: 0,
-      drinkingCount: 0
+      drinkCount: 0
   }
 };
 
@@ -142,7 +142,7 @@ function BattlePage() {
         `자욱한 연기 속에서 공격이 쏟아진다!`,
         `예측불가한 연막 속 공격!`
       ],
-      drinkingCount: [
+      drinkCount: [
         `${attacker}의 취권 발동!`,
         `흔들리는 발걸음으로 오히려 상대를 교란한다!`,
         `예측불가한 술취한 공격 패턴!`
@@ -158,7 +158,7 @@ function BattlePage() {
       const messages = [
         "치명적인 일격이 들어갔다!",
         "상대방이 크게 휘청인다!",
-        "력한 공격이 적했다!",
+        "강력한 공격이 적중했다!",
         "피할 수 없는 결정타다!"
       ];
       return messages[Math.floor(Math.random() * messages.length)];
@@ -182,7 +182,7 @@ function BattlePage() {
       }
     }));
 
-    const properties = ['height', 'weight', 'exerciseCount', 'smokeCount', 'drinkingCount'];
+    const properties = ['height', 'weight', 'exerciseCount', 'smokeCount', 'drinkCount'];
     
     for (let i = 0; i < properties.length; i++) {
       const property = properties[i];
@@ -254,6 +254,7 @@ function BattlePage() {
 
         const data = await response.json();
         setBattleData(data);
+        console.log('data:', data);
         battleInitialized.current = true;
 
       } catch (error) {
