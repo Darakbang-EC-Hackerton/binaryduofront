@@ -70,9 +70,7 @@ const glitchAnimation = keyframes`
 `;
 
 // Mock 데이터 추가
-const mockMatchData = {
-  winner: "준서",
-  loser: "감자",
+const mockMatchData = {  
   propertyWinners: {
     height: "준서",
     weight: "감자",
@@ -80,21 +78,21 @@ const mockMatchData = {
     smokeCount: "준서",
     drinkingCount: "준서",
   },
-  playerInfo: {
-    "준서": {
-      "height": "180cm",
-      "weight": "75kg",
-      "exerciseCount": 10,
-      "smokeCount": 3,
-      "drinkingCount": 3
-    },
-    "감자": {
-      "height": "6cm",
-      "weight": "100kg",
-      "exerciseCount": 8,
-      "smokeCount": 0,
-      "drinkingCount": 0,
-    }
+  winnerInfo: {    
+      name: "준서",
+      height: "180cm",
+      weight: "75kg",
+      exerciseCount: 10,
+      smokeCount: 3,
+      drinkingCount: 3
+  },
+  loserInfo: {
+      name: "감자",
+      height: "160cm",
+      weight: "65kg",
+      exerciseCount: 8,
+      smokeCount: 0,
+      drinkingCount: 0
   }
 };
 
@@ -102,17 +100,19 @@ function BattlePage() {
   const searchParams = useSearchParams();
   const battleDataStr = searchParams.get('battleData');
   const battleData = battleDataStr ? JSON.parse(battleDataStr) : mockMatchData;
-  const inviterId = Object.keys(battleData.playerInfo)[0];
-  const inviteeId = Object.keys(battleData.playerInfo)[1];
+  
+  // 승자와 패자 정보 추출
+  const winner = battleData.winnerInfo.name;
+  const loser = battleData.loserInfo.name;
 
-  // 상태 관��
+  // 상태 관리
   const [battleState, setBattleState] = useState({
     currentStep: 0,
     isStarted: false,
     isFinished: false,
     healthPoints: {
-      [inviterId]: 100,
-      [inviteeId]: 100
+      [winner]: 100,
+      [loser]: 100
     },
     logs: []
   });
@@ -138,7 +138,7 @@ function BattlePage() {
     for (let i = 0; i < properties.length; i++) {
       const property = properties[i];
       const propertyWinner = battleData.propertyWinners[property];
-      const propertyLoser = propertyWinner === inviterId ? inviteeId : inviterId;
+      const propertyLoser = propertyWinner === winner ? loser : winner;
 
       // 현재 스텝 업데이트
       setBattleState(prev => ({ ...prev, currentStep: i + 1 }));
@@ -217,7 +217,7 @@ function BattlePage() {
     return <div>No match information available</div>;
   }
 
-  const { winner, loser, propertyWinners, playerInfo } = battleData;
+  const { propertyWinners, playerInfo } = battleData;
 
   const renderBattleStep = () => {
     if (!battleState.isStarted) return null;
@@ -228,7 +228,7 @@ function BattlePage() {
           <Flex w="full" justify="space-between" px={8} gap={8}>
             <VStack flex={1}>
               <Progress 
-                value={battleState.healthPoints[inviterId]} 
+                value={battleState.healthPoints[winner]} 
                 colorScheme="red" 
                 w="full"
                 h="20px"
@@ -240,12 +240,12 @@ function BattlePage() {
                   }
                 }}
               />
-              <Text color={textColor} fontSize="lg">{battleState.healthPoints[inviterId]}%</Text>
+              <Text color={textColor} fontSize="lg">{battleState.healthPoints[winner]}%</Text>
             </VStack>
 
             <VStack flex={1}>
               <Progress 
-                value={battleState.healthPoints[inviteeId]} 
+                value={battleState.healthPoints[loser]} 
                 colorScheme="red" 
                 w="full"
                 h="20px"
@@ -257,7 +257,7 @@ function BattlePage() {
                   }
                 }}
               />
-              <Text color={textColor} fontSize="lg">{battleState.healthPoints[inviteeId]}%</Text>
+              <Text color={textColor} fontSize="lg">{battleState.healthPoints[loser]}%</Text>
             </VStack>
           </Flex>
         ) : (
@@ -441,7 +441,7 @@ function BattlePage() {
               bg="rgba(255, 0, 0, 0.1)"
               borderRadius="lg"
               border="2px solid"
-              borderColor={battleState.isFinished && winner === inviterId ? winnerColor : "red.500"}
+              borderColor={battleState.isFinished && winner === winner ? winnerColor : "red.500"}
               overflow="hidden"
               _before={{
                 content: '""',
@@ -451,7 +451,7 @@ function BattlePage() {
                 right: 0,
                 bottom: 0,
                 background: 'linear-gradient(135deg, rgba(255,0,0,0.2) 0%, transparent 100%)',
-                opacity: battleState.isFinished && winner === inviterId ? 1 : 0.5,
+                opacity: battleState.isFinished && winner === winner ? 1 : 0.5,
               }}
               _after={{
                 content: '""',
@@ -460,7 +460,7 @@ function BattlePage() {
                 left: 0,
                 right: 0,
                 bottom: 0,
-                boxShadow: battleState.isFinished && winner === inviterId 
+                boxShadow: battleState.isFinished && winner === winner 
                   ? "inset 0 0 20px rgba(255,255,0,0.5)" 
                   : "inset 0 0 20px rgba(255,0,0,0.3)",
               }}
@@ -476,12 +476,12 @@ function BattlePage() {
                 <Text
                   fontSize={{ base: "2xl", md: "3xl" }}
                   fontWeight="bold"
-                  color={battleState.isFinished && winner === inviterId ? winnerColor : textColor}
+                  color={battleState.isFinished && winner === winner ? winnerColor : textColor}
                   textShadow="2px 2px 4px rgba(0,0,0,0.5)"
                 >
-                  {inviterId}
+                  {winner}
                 </Text>
-                {battleState.isFinished && winner === inviterId && (
+                {battleState.isFinished && winner === winner && (
                   <Text
                     color={winnerColor}
                     fontWeight="bold"
@@ -514,7 +514,7 @@ function BattlePage() {
               bg="rgba(255, 0, 0, 0.1)"
               borderRadius="lg"
               border="2px solid"
-              borderColor={battleState.isFinished && winner === inviteeId ? winnerColor : "red.500"}
+              borderColor={battleState.isFinished && winner === loser ? winnerColor : "red.500"}
               overflow="hidden"
               _before={{
                 content: '""',
@@ -524,7 +524,7 @@ function BattlePage() {
                 right: 0,
                 bottom: 0,
                 background: 'linear-gradient(135deg, rgba(255,0,0,0.2) 0%, transparent 100%)',
-                opacity: battleState.isFinished && winner === inviteeId ? 1 : 0.5,
+                opacity: battleState.isFinished && winner === loser ? 1 : 0.5,
               }}
               _after={{
                 content: '""',
@@ -533,7 +533,7 @@ function BattlePage() {
                 left: 0,
                 right: 0,
                 bottom: 0,
-                boxShadow: battleState.isFinished && winner === inviteeId 
+                boxShadow: battleState.isFinished && winner === loser 
                   ? "inset 0 0 20px rgba(255,255,0,0.5)" 
                   : "inset 0 0 20px rgba(255,0,0,0.3)",
               }}
@@ -549,12 +549,12 @@ function BattlePage() {
                 <Text
                   fontSize={{ base: "2xl", md: "3xl" }}
                   fontWeight="bold"
-                  color={battleState.isFinished && winner === inviteeId ? winnerColor : textColor}
+                  color={battleState.isFinished && winner === loser ? winnerColor : textColor}
                   textShadow="2px 2px 4px rgba(0,0,0,0.5)"
                 >
-                  {inviteeId}
+                  {loser}
                 </Text>
-                {battleState.isFinished && winner === inviteeId && (
+                {battleState.isFinished && winner === loser && (
                   <Text
                     color={winnerColor}
                     fontWeight="bold"
