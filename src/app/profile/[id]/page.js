@@ -13,11 +13,21 @@ import {
   Divider,
   Tooltip,
   Icon,
-  HStack
+  HStack,
+  Grid,
+  GridItem
 } from '@chakra-ui/react';
 import { CopyIcon, CheckIcon } from '@chakra-ui/icons';
 import { FaTrophy, FaSkull } from 'react-icons/fa';
 import { useRouter, useParams } from 'next/navigation';
+import {
+  Radar,
+  RadarChart,
+  PolarGrid,
+  PolarAngleAxis,
+  PolarRadiusAxis,
+  ResponsiveContainer
+} from 'recharts';
 
 // Mock 데이터
 const MOCK_DATA = {
@@ -167,6 +177,34 @@ export default function ProfilePage() {
         }
     };
 
+    const prepareStatsData = (profile) => {
+        if (!profile) return [];
+
+        // BMI 정상 범위: 18.5 ~ 25
+        const normalBMI = 21.75;
+        const bmiScore = Math.max(0, 100 - Math.abs(profile.bmi - normalBMI) * 10);
+
+        // 운동 점수 (주 7회 기준)
+        const exerciseScore = (profile.weekly_exercise_days / 7) * 100;
+
+        // 음주 점수 (주 0회가 이상적)
+        const drinkingScore = Math.max(0, 100 - (profile.drinking_frequency_per_week * 10));
+
+        // 체중 점수
+        const weightScore = Math.max(0, 100 - Math.abs(profile.weight_kg - profile.ideal_values.ideal_weight_kg) * 2);
+
+        // 흡연 점수 (0이 이상적)
+        const smokingScore = profile.smoke_count === null ? 100 : Math.max(0, 100 - profile.smoke_count * 5);
+
+        return [
+            { subject: 'BMI', A: bmiScore, fullMark: 100 },
+            { subject: '운동량', A: exerciseScore, fullMark: 100 },
+            { subject: '금주', A: drinkingScore, fullMark: 100 },
+            { subject: '체중', A: weightScore, fullMark: 100 },
+            { subject: '금연', A: smokingScore, fullMark: 100 },
+        ];
+    };
+
     // 프로필이나 매치 히스토리가 없으면 로딩 중이거나 에러 상태
     if (!profile || !matchHistory) {
         return (
@@ -247,14 +285,93 @@ export default function ProfilePage() {
                                 {profile.name}
                             </Text>
                             <Text color="gray.400" fontSize="sm">
-                                위험 등급: {profile.level}
+                                건강 등급: {profile.health_grade}
                             </Text>
-                            <Text color="gray.400" fontSize="sm">
-                                첫 입장: {profile.joinDate}
-                            </Text>
+                            
                         </VStack>
 
                         <Divider borderColor="red.500" opacity={0.3} />
+
+                        {/* 능력치 그래프 추가 */}
+                        <Box
+                            h="300px"
+                            w="full"
+                            position="relative"
+                            bg="rgba(0,0,0,0.3)"
+                            borderRadius="lg"
+                            p={4}
+                        >
+                            <ResponsiveContainer width="100%" height="100%">
+                                <RadarChart data={prepareStatsData(profile)}>
+                                    <PolarGrid stroke="rgba(255,0,0,0.3)" />
+                                    <PolarAngleAxis
+                                        dataKey="subject"
+                                        tick={{ fill: 'rgba(255,255,255,0.8)', fontSize: 12 }}
+                                    />
+                                    <PolarRadiusAxis
+                                        angle={30}
+                                        domain={[0, 100]}
+                                        tick={{ fill: 'rgba(255,255,255,0.6)', fontSize: 10 }}
+                                    />
+                                    <Radar
+                                        name="능력치"
+                                        dataKey="A"
+                                        stroke="#E53E3E"
+                                        fill="#E53E3E"
+                                        fillOpacity={0.3}
+                                    />
+                                </RadarChart>
+                            </ResponsiveContainer>
+                        </Box>
+
+                        {/* 상세 스탯 */}
+                        <Grid templateColumns="repeat(2, 1fr)" gap={4}>
+                            <GridItem>
+                                <VStack
+                                    bg="rgba(0,0,0,0.3)"
+                                    p={3}
+                                    borderRadius="md"
+                                    align="start"
+                                >
+                                    <Text color="gray.400" fontSize="sm">신장</Text>
+                                    <Text color={textColor} fontSize="lg">{profile.height_cm}cm</Text>
+                                </VStack>
+                            </GridItem>
+                            <GridItem>
+                                <VStack
+                                    bg="rgba(0,0,0,0.3)"
+                                    p={3}
+                                    borderRadius="md"
+                                    align="start"
+                                >
+                                    <Text color="gray.400" fontSize="sm">체중</Text>
+                                    <Text color={textColor} fontSize="lg">{profile.weight_kg}kg</Text>
+                                </VStack>
+                            </GridItem>
+                            <GridItem>
+                                <VStack
+                                    bg="rgba(0,0,0,0.3)"
+                                    p={3}
+                                    borderRadius="md"
+                                    align="start"
+                                >
+                                    <Text color="gray.400" fontSize="sm">주간 운동</Text>
+                                    <Text color={textColor} fontSize="lg">{profile.weekly_exercise_days}회</Text>
+                                </VStack>
+                            </GridItem>
+                            <GridItem>
+                                <VStack
+                                    bg="rgba(0,0,0,0.3)"
+                                    p={3}
+                                    borderRadius="md"
+                                    align="start"
+                                >
+                                    <Text color="gray.400" fontSize="sm">BMI</Text>
+                                    <Text color={textColor} fontSize="lg">{profile.bmi.toFixed(1)}</Text>
+                                </VStack>
+                            </GridItem>
+                        </Grid>
+
    {/* 도전장 보내기 섹션 */}
    <Box
                     bg="rgba(0,0,0,0.7)"
@@ -316,6 +433,7 @@ export default function ProfilePage() {
                         </Box>
                     </VStack>
                 </Box>
+
                         {/* 매치 히스토리 */}
                         <VStack spacing={3} align="stretch">
                             <Text color="red.400" fontSize="lg" fontWeight="bold">
@@ -375,8 +493,6 @@ export default function ProfilePage() {
                         </VStack>
                     </VStack>
                 </Box>
-
-             
 
                 <Text
                     color="red.400"
