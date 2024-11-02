@@ -165,7 +165,7 @@ export default function ProfilePage() {
         
         
         try {
-            const link = `${window.location.origin}/form?inviterId=${profile.name}`;
+            const link = `${window.location.origin}/form?inviterId=${profile.user_id}`;
             const message = "새해에도 건강해야죠! AI 건강진단 받아보세요";
             const linkWithMessage = `${link}\n\n${message}`;
             await navigator.clipboard.writeText(linkWithMessage);
