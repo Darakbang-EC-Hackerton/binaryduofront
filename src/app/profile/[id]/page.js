@@ -107,7 +107,7 @@ export default function ProfilePage({ paramsPromise }) {
 
                 // 프로필 정보 가져오기 시도
                 try {
-                    const profileRes = await fetch(`/api/profiles/${id}`);
+                    const profileRes = await fetch(`https://port-0-healthmatch1-m30h6ofzaa0b4434.sel4.cloudtype.app/api/profiles/${id}`);
                     if (profileRes.ok) {
                         const data = await profileRes.json();
                         setProfile(data);
@@ -117,13 +117,14 @@ export default function ProfilePage({ paramsPromise }) {
                 } catch (error) {
                     console.log('프로필 정보 가져오기 실패, mock 데이터 사용');
                     setProfile({
-                        ...MOCK_DATA.profile                        
+                        ...MOCK_DATA.profile,
+                        name: id
                     });
                 }
 
                 // 매치 히스토리 가져오기 시도
                 try {
-                    const historyRes = await fetch(`/api/match-history?profileId=${id}`);
+                    const historyRes = await fetch(`https://port-0-healthmatch1-m30h6ofzaa0b4434.sel4.cloudtype.app/api/match-history?profileId=${id}`);
                     if (historyRes.ok) {
                         const data = await historyRes.json();
                         setMatchHistory(data);
@@ -137,7 +138,6 @@ export default function ProfilePage({ paramsPromise }) {
 
             } catch (error) {
                 console.error('초기화 실패:', error);
-                // paramsPromise 실패 시 기본값 설정
                 setProfile(MOCK_DATA.profile);
                 setMatchHistory(MOCK_DATA.matchHistory);
             }
@@ -151,7 +151,9 @@ export default function ProfilePage({ paramsPromise }) {
         
         try {
             const link = `${window.location.origin}/form?inviterId=${profile.name}`;
-            await navigator.clipboard.writeText(link);
+            const message = "새해에도 건강해야죠! AI 건강진단 받아보세요";
+            const linkWithMessage = `${link}\n\n${message}`;
+            await navigator.clipboard.writeText(linkWithMessage);
             setHasCopied(true);
             setTimeout(() => setHasCopied(false), 2000);
             console.log('링크가 복사되었습니다:', link); // 디버깅용
@@ -243,7 +245,7 @@ export default function ProfilePage({ paramsPromise }) {
                                 위험 등급: {profile.level}
                             </Text>
                             <Text color="gray.400" fontSize="sm">
-                                첫 입장일: {profile.joinDate}
+                                첫 입장: {profile.joinDate}
                             </Text>
                         </VStack>
 
@@ -287,6 +289,8 @@ export default function ProfilePage({ paramsPromise }) {
                                     width="full"
                                     height="60px"
                                     onClick={handleCopyLink}
+                                    _hover={{}}
+                                    _active={{}}
                                     sx={{
                                         boxShadow: '0 0 15px rgba(255,0,0,0.4)',
                                     }}

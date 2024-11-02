@@ -38,11 +38,20 @@ function QuestionPoolPage() {
     drinkingCount: 0,
     name: '',
   });
+  const [fakeAnswers, setFakeAnswers] = useState({
+    sleepHours: '',
+    mealsPerDay: '',
+    hobby: '',
+    sittingHours: '',
+  });
   const [loading, setLoading] = useState(false);
   const [showTooltip, setShowTooltip] = useState({
     workout: false,
     smoking: false,
-    drinking: false
+    drinking: false,
+    sleep: false,
+    meals: false,
+    sitting: false,
   });
   const router = useRouter();
 
@@ -52,15 +61,32 @@ function QuestionPoolPage() {
   const accentColor = 'red.500';
 
   const calculateProgress = () => {
-    const totalFields = Object.keys(answers).length;
-    const filledFields = Object.values(answers).filter(value => 
-      typeof value === 'number' ? true : value.trim() !== ''
-    ).length;
-    return (filledFields / totalFields) * 100;
+    const totalFields = Object.keys(answers).length + Object.keys(fakeAnswers).length;
+    
+    // 실제 답변 체크
+    const filledRealFields = Object.entries(answers).filter(([key, value]) => {
+      if (typeof value === 'number') return true;
+      return value.trim() !== '';
+    }).length;
+
+    // 가짜 답변 체크 (숫자와 문자열 타입 구분)
+    const filledFakeFields = Object.entries(fakeAnswers).filter(([key, value]) => {
+      if (key === 'hobby') return value.trim() !== '';  // hobby는 문자열
+      return value !== '';  // 나머지는 숫자
+    }).length;
+
+    return ((filledRealFields + filledFakeFields) / totalFields) * 100;
   };
 
   const handleInputChange = (field, value) => {
     setAnswers(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  const handleFakeInputChange = (field, value) => {
+    setFakeAnswers(prev => ({
       ...prev,
       [field]: value
     }));
@@ -72,13 +98,15 @@ function QuestionPoolPage() {
     try {
       setLoading(true);
       
-      // 서버에 데이터 전송 및 matchId 수신
-      const response = await fetch('https://example.com/api/submit', {
+      // 실제 서버 API 주소 사용
+      const response = await fetch('https://port-0-healthmatch1-m30h6ofzaa0b4434.sel4.cloudtype.app/api/submit', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({ 
+          inviterId: inviterId,
+          inviteeData: {
             height: answers.height,
             weight: answers.weight,
             workoutCount: answers.workoutCount,
@@ -86,7 +114,7 @@ function QuestionPoolPage() {
             drinkingCount: answers.drinkingCount,
             name: answers.name
           }
-        )
+        })
       });
 
       if (!response.ok) {
@@ -94,32 +122,10 @@ function QuestionPoolPage() {
       }
 
       const data = await response.json();
-      const { inviteeId } = data;  // 서버에서 할당된 inviteeId
-
-      // 건강 매칭 결과 요청
-      const matchResponse = await fetch(`https://example.com/health-match-result?inviterId=${inviterId}&inviteeId=${inviteeId}`, {
-        method: 'GET',
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      });
-
-      if (!matchResponse.ok) {
-        throw new Error('건강 매칭 결과를 가져오는데 실패했습니다');
-      }
-
-      const matchData = await matchResponse.json();
-      const { matchId } = matchData;
-      // 실제 API가 없는 경우를 위한 임시 matchId
-      const tempMatchId = 'match_' + Date.now();
+      const { matchId } = data;
       
-      // URL 쿼리 파라미터 구성
-      const queryParams = new URLSearchParams({
-        matchId: matchId || tempMatchId  // 실제 matchId가 없으면 임시 ID 사용
-      }).toString();
-
       // battle 페이지로 이동
-      router.push(`/battle?${queryParams}`);
+      router.push(`/battle?matchId=${matchId}`);
       
     } catch (error) {
       console.error('Failed to submit form:', error);
@@ -373,6 +379,127 @@ function QuestionPoolPage() {
                     placement='top'
                     isOpen={showTooltip.drinking}
                     label={`${answers.drinkingCount}회`}
+                  >
+                    <SliderThumb />
+                  </Tooltip>
+                </Slider>
+              </FormControl>
+
+              {/* 수면 시간 슬라이더 */}
+              <FormControl isRequired>
+                <FormLabel fontSize="sm" fontWeight="500">
+                  평균 수면 시간
+                  <Text as="span" fontSize="xs" color="gray.500" ml={2}>
+                    (수면 건강 지수 분석)
+                  </Text>
+                </FormLabel>
+                <Slider
+                  defaultValue={7}
+                  min={0}
+                  max={12}
+                  step={0.5}
+                  onChange={(v) => handleFakeInputChange('sleepHours', v)}
+                  onMouseEnter={() => setShowTooltip({...showTooltip, sleep: true})}
+                  onMouseLeave={() => setShowTooltip({...showTooltip, sleep: false})}
+                >
+                  <SliderMark value={0} mt='2' ml='-2.5' fontSize='sm'>0</SliderMark>
+                  <SliderMark value={12} mt='2' ml='-2.5' fontSize='sm'>12</SliderMark>
+                  <SliderTrack bg="red.100">
+                    <SliderFilledTrack bg="red.500" />
+                  </SliderTrack>
+                  <Tooltip
+                    hasArrow
+                    bg='red.500'
+                    color='white'
+                    placement='top'
+                    isOpen={showTooltip.sleep}
+                    label={`${fakeAnswers.sleepHours}시간`}
+                  >
+                    <SliderThumb />
+                  </Tooltip>
+                </Slider>
+              </FormControl>
+
+              {/* 식사 횟수 슬라이더 */}
+              <FormControl isRequired>
+                <FormLabel fontSize="sm" fontWeight="500">
+                  하루 식사 횟수
+                  <Text as="span" fontSize="xs" color="gray.500" ml={2}>
+                    (영양 균형도 측정)
+                  </Text>
+                </FormLabel>
+                <Slider
+                  defaultValue={3}
+                  min={1}
+                  max={5}
+                  step={1}
+                  onChange={(v) => handleFakeInputChange('mealsPerDay', v)}
+                  onMouseEnter={() => setShowTooltip({...showTooltip, meals: true})}
+                  onMouseLeave={() => setShowTooltip({...showTooltip, meals: false})}
+                >
+                  <SliderMark value={1} mt='2' ml='-2.5' fontSize='sm'>1</SliderMark>
+                  <SliderMark value={5} mt='2' ml='-2.5' fontSize='sm'>5</SliderMark>
+                  <SliderTrack bg="red.100">
+                    <SliderFilledTrack bg="red.500" />
+                  </SliderTrack>
+                  <Tooltip
+                    hasArrow
+                    bg='red.500'
+                    color='white'
+                    placement='top'
+                    isOpen={showTooltip.meals}
+                    label={`${fakeAnswers.mealsPerDay}회`}
+                  >
+                    <SliderThumb />
+                  </Tooltip>
+                </Slider>
+              </FormControl>
+
+              {/* 취미 활동은 텍스트 입력 유지 */}
+              <FormControl isRequired>
+                <FormLabel fontSize="sm" fontWeight="500">
+                  주요 취미 활동
+                  <Text as="span" fontSize="xs" color="gray.500" ml={2}>
+                    (스트레스 지수 분석)
+                  </Text>
+                </FormLabel>
+                <Input
+                  type="text"
+                  placeholder="주로 즐기시는 취미 활동을 입력해주세요"
+                  value={fakeAnswers.hobby}
+                  onChange={(e) => handleFakeInputChange('hobby', e.target.value)}
+                />
+              </FormControl>
+
+              {/* 좌식 시간 슬라이더 */}
+              <FormControl isRequired>
+                <FormLabel fontSize="sm" fontWeight="500">
+                  하루 좌식 시간
+                  <Text as="span" fontSize="xs" color="gray.500" ml={2}>
+                    (활동량 지수 계산)
+                  </Text>
+                </FormLabel>
+                <Slider
+                  defaultValue={8}
+                  min={0}
+                  max={16}
+                  step={0.5}
+                  onChange={(v) => handleFakeInputChange('sittingHours', v)}
+                  onMouseEnter={() => setShowTooltip({...showTooltip, sitting: true})}
+                  onMouseLeave={() => setShowTooltip({...showTooltip, sitting: false})}
+                >
+                  <SliderMark value={0} mt='2' ml='-2.5' fontSize='sm'>0</SliderMark>
+                  <SliderMark value={16} mt='2' ml='-2.5' fontSize='sm'>16</SliderMark>
+                  <SliderTrack bg="red.100">
+                    <SliderFilledTrack bg="red.500" />
+                  </SliderTrack>
+                  <Tooltip
+                    hasArrow
+                    bg='red.500'
+                    color='white'
+                    placement='top'
+                    isOpen={showTooltip.sitting}
+                    label={`${fakeAnswers.sittingHours}시간`}
                   >
                     <SliderThumb />
                   </Tooltip>
