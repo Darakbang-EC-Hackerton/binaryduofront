@@ -136,7 +136,7 @@ export default function ProfilePage() {
 
                 // 매치 히스토리 가져오기 시도
                 try {
-                    const historyRes = await fetch(`https://port-0-healthmatch1-m30h6ofzaa0b4434.sel4.cloudtype.app//health-match-results?profileId=${id}`);
+                    const historyRes = await fetch(`https://port-0-healthmatch1-m30h6ofzaa0b4434.sel4.cloudtype.app/health-match-results?profileId=${id}`);
                     if (historyRes.ok) {
                         const data = await historyRes.json();
                         console.log('data:', data);
