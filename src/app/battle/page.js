@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, Suspense } from 'react';
 import { keyframes } from '@emotion/react';
 import { useSearchParams } from 'next/navigation';
 import {
@@ -89,8 +89,8 @@ const mockMatchData = {
   }
 };
 
-function BattlePage() {
-  // 1. 기본 상태 및 설정
+// BattleContent 컴포넌트로 분리
+function BattleContent() {
   const searchParams = useSearchParams();
   const router = useRouter();
   const matchId = searchParams.get('matchId');
@@ -692,4 +692,29 @@ function BattlePage() {
   );
 }
 
-export default BattlePage;
+// 메인 페이지 컴포넌트
+export default function BattlePage() {
+  return (
+    <Suspense fallback={
+      <Box 
+        minH="100vh" 
+        display="flex" 
+        alignItems="center" 
+        justifyContent="center" 
+        bg="black"
+      >
+        <Text 
+          fontSize="2xl" 
+          color="red.300"
+          sx={{
+            animation: `${glitchAnimation} 3s infinite`,
+          }}
+        >
+          결투장 입장중...
+        </Text>
+      </Box>
+    }>
+      <BattleContent />
+    </Suspense>
+  );
+}
