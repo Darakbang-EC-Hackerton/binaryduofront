@@ -92,6 +92,7 @@ const mockMatchData = {
 function BattlePage() {
   // 1. 기본 상태 및 설정
   const searchParams = useSearchParams();
+  const router = useRouter();
   const matchId = searchParams.get('matchId');
   const battleInitialized = useRef(false);
 
@@ -157,7 +158,7 @@ function BattlePage() {
       const messages = [
         "치명적인 일격이 들어갔다!",
         "상대방이 크게 휘청인다!",
-        "���력한 공격이 적��했다!",
+        "력한 공격이 적했다!",
         "피할 수 없는 결정타다!"
       ];
       return messages[Math.floor(Math.random() * messages.length)];
@@ -455,8 +456,6 @@ function BattlePage() {
       </VStack>
     );
   };
-
-  const router = useRouter();
 
   const handleCheckProfile = () => {
     const healthProfileId = Cookies.get('healthProfileId');
