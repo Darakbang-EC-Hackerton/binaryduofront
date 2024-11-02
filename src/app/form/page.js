@@ -2,8 +2,8 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Cookies from 'js-cookie';
-import { Button } from '@chakra-ui/react';
-import { Input } from '@chakra-ui/react';
+import { Button, Heading, VStack, FormControl, FormLabel, Input, Box, Container, Text } from '@chakra-ui/react';
+
 // 질문 풀 컴포넌트 (기본적인 Next.js 폼 페이지 + 클라이언트 사이드 데이터 패칭)
 
 function QuestionPoolPage() {
@@ -30,7 +30,7 @@ function QuestionPoolPage() {
           const data = await response.json();
           setQuestions(data.questions);
         } catch (error) {
-          console.error('Failed to fetch questions:', error);
+          console.error('질문을 가져오는데 실패했습니다:', error);
           // 데이터가 없을 경우 임시 질문 설정
           setQuestions(['키', '몸무게', '일주일 운동 횟수','흡연여부', '이름', '좋아하는 음식']);
         } finally {
@@ -60,7 +60,7 @@ function QuestionPoolPage() {
           body: JSON.stringify(answers),
         });
         if (!response.ok) {
-          throw new Error('Failed to submit answers');
+          throw new Error('답변 제출에 실패했습니다');
         }
         const result = await response.json();
         // 대결 페이지로 이동하면서 응답 데이터를 쿼리 파라미터로 전달
@@ -69,31 +69,35 @@ function QuestionPoolPage() {
           query: { result: JSON.stringify(result) },
         });
       } catch (error) {
-        console.error('Failed to submit answers:', error);
+        console.error('답변 제출에 실패했습니다:', error);
       }
     };
   
     if (loading) {
-      return <div>Loading...</div>;
+      return <Box display="flex" justifyContent="center" alignItems="center" height="100vh"><Text>로딩 중...</Text></Box>;
     }
   
     return (
-      <div>
-        <h1>얼마나 건강하세요?</h1>
-        <form>
-          {questions.map((question, index) => (
-            <div key={index}>
-              <label>{question}</label>
-              <Input
-                type="text"
-                name={`question-${index}`}
-                onChange={(e) => handleInputChange(e, index)}
-              />
-            </div>
-          ))}
-          <Button onClick={handleOkClick}>내 건강 확인하기</Button>
-        </form>
-      </div>
+      <Container maxW="container.md" py={10}>
+        <VStack spacing={8} align="stretch">
+          <Heading textAlign="center">얼마나 <Text as="span" fontWeight="thin" fontSize="smaller">건</Text>강하세요?</Heading>
+          <VStack as="form" spacing={6}>
+            {questions.map((question, index) => (
+              <FormControl key={index}>
+                <FormLabel>{question}</FormLabel>
+                <Input
+                  type="text"
+                  name={`question-${index}`}
+                  onChange={(e) => handleInputChange(e, index)}
+                />
+              </FormControl>
+            ))}
+            <Button colorScheme="blue" onClick={handleOkClick} width="full">
+              {loading ? '내 강함 확인하기' : '내 건강 확인하기'}
+            </Button>
+          </VStack>
+        </VStack>
+      </Container>
     );
   }
   
