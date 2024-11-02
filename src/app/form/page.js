@@ -78,10 +78,7 @@ function QuestionPoolPage() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          inviterId: inviterId,
-          inviteeId: answers.name,
-          inviteeData: {
+        body: JSON.stringify({ 
             height: answers.height,
             weight: answers.weight,
             workoutCount: answers.workoutCount,
@@ -89,7 +86,7 @@ function QuestionPoolPage() {
             drinkingCount: answers.drinkingCount,
             name: answers.name
           }
-        })
+        )
       });
 
       if (!response.ok) {
@@ -97,15 +94,27 @@ function QuestionPoolPage() {
       }
 
       const data = await response.json();
-      const { matchId } = data;  // 서버에서 받은 matchId
+      const { inviteeId } = data;  // 서버에서 할당된 inviteeId
 
+      // 건강 매칭 결과 요청
+      const matchResponse = await fetch(`https://example.com/health-match-result?inviterId=${inviterId}&inviteeId=${inviteeId}`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json'
+        }
+      });
+
+      if (!matchResponse.ok) {
+        throw new Error('건강 매칭 결과를 가져오는데 실패했습니다');
+      }
+
+      const matchData = await matchResponse.json();
+      const { matchId } = matchData;
       // 실제 API가 없는 경우를 위한 임시 matchId
       const tempMatchId = 'match_' + Date.now();
       
       // URL 쿼리 파라미터 구성
       const queryParams = new URLSearchParams({
-        inviterId: inviterId,
-        inviteeId: answers.name,
         matchId: matchId || tempMatchId  // 실제 matchId가 없으면 임시 ID 사용
       }).toString();
 
