@@ -246,7 +246,7 @@ function BattleContent() {
       if (!matchId || battleInitialized.current) return;
 
       try {
-        const response = await fetch(`/api/health-match-result/${matchId}`);
+        const response = await fetch(`https://port-0-healthmatch1-m30h6ofzaa0b4434.sel4.cloudtype.app//health-match-result/${matchId}`);
         
         if (!response.ok) {
           throw new Error('Failed to fetch match data');

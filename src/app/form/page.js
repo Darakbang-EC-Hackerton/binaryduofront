@@ -103,7 +103,7 @@ function FormContent() {
       if (healthProfileId && inviterId) {
         try {
           // 매치 결과 요청
-          const matchResultResponse = await fetch(`/api/health-match-result?inviterId=${inviterId}&inviteeId=${healthProfileId}`);
+          const matchResultResponse = await fetch(`https://port-0-healthmatch1-m30h6ofzaa0b4434.sel4.cloudtype.app//health-match-result?inviterId=${inviterId}&inviteeId=${healthProfileId}`);
           
           if (!matchResultResponse.ok) {
             throw new Error('Failed to get match result');
@@ -139,7 +139,7 @@ function FormContent() {
 
       console.log('Sending profile data:', profileData);
 
-      const profileResponse = await fetch('/api/profiles', {
+      const profileResponse = await fetch('https://port-0-healthmatch1-m30h6ofzaa0b4434.sel4.cloudtype.app//profiles', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -159,7 +159,7 @@ function FormContent() {
       console.log('Received inviteeId:', inviteeId);
       
       // 매치 결과 요청
-      const matchResultResponse = await fetch(`/api/health-match-result?inviterId=${inviterId}&inviteeId=${inviteeId}`);
+      const matchResultResponse = await fetch(`https://port-0-healthmatch1-m30h6ofzaa0b4434.sel4.cloudtype.app//health-match-result?inviterId=${inviterId}&inviteeId=${inviteeId}`);
       
       if (!matchResultResponse.ok) {
         throw new Error('Failed to get match result');
