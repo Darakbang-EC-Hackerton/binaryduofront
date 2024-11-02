@@ -14,8 +14,12 @@ import {
   Flex,
   Badge,
   Progress,
-  Divider
+  Divider,
+  Tooltip,
+  Icon,
+  HStack
 } from '@chakra-ui/react';
+import { CopyIcon, CheckIcon } from '@chakra-ui/icons';
 
 // 깜빡이는 애니메이션
 const blinkingAnimation = keyframes`
@@ -52,99 +56,274 @@ const glitchAnimation = keyframes`
   }
 `;
 
+// Mock 데이터 추가
+const mockProfile = {
+  name: "Unknown Fighter",
+  level: "위험",
+  joinDate: "2024-01-01",
+  lastActive: "2024-03-19"
+};
+
+const mockMatchResults = {
+  totalMatches: 120,
+  wins: 100,
+  losses: 20,
+  healthRisk: 75,
+  match_history: [
+    {
+      match_id: "1",
+      result: "win",
+      match_date: "2024-04-27T15:30:00Z",
+      my_name: "홍길동",
+      opponent_name: "김철수",
+      match_data: {
+        winner: "홍길동",
+        loser: "김철수",
+        propertyWinners: {
+          height: "홍길동",
+          weight: "김철수",
+          exerciseCount: "홍길동",
+          smokeCount: "홍길동",
+          drinkingCount: "김철수"
+        },
+        winnerInfo: {
+          name: "홍길동",
+          height: "180cm",
+          weight: "75kg",
+          exerciseCount: 5,
+          smokeCount: 0,
+          drinkingCount: 2
+        },
+        loserInfo: {
+          name: "김철수",
+          height: "175cm",
+          weight: "80kg",
+          exerciseCount: 3,
+          smokeCount: 10,
+          drinkingCount: 4
+        }
+      }
+    },
+    {
+      match_id: "match_002",
+      result: "loss",
+      match_date: "2024-05-05T18:45:00Z",
+      my_name: "홍길동",
+      opponent_name: "이영희",
+      match_data: {
+        winner: "이영희",
+        loser: "홍길동",
+        propertyWinners: {
+          height: "이영희",
+          weight: "이영희",
+          exerciseCount: "홍길동",
+          smokeCount: "홍길동",
+          drinkingCount: "이영희"
+        },
+        winnerInfo: {
+          name: "이영희",
+          height: "182cm",
+          weight: "78kg",
+          exerciseCount: 4,
+          smokeCount: 5,
+          drinkingCount: 3
+        },
+        loserInfo: {
+          name: "홍길동",
+          height: "180cm",
+          weight: "75kg",
+          exerciseCount: 5,
+          smokeCount: 0,
+          drinkingCount: 2
+        }
+      }
+    },
+    {
+      match_id: "match_003",
+      result: "win",
+      match_date: "2024-06-12T12:00:00Z",
+      my_name: "홍길동",
+      opponent_name: "박민수",
+      match_data: {
+        winner: "홍길동",
+        loser: "박민수",
+        propertyWinners: {
+          height: "홍길동",
+          weight: "홍길동",
+          exerciseCount: "홍길동",
+          smokeCount: "박민수",
+          drinkingCount: "박민수"
+        },
+        winnerInfo: {
+          name: "홍길동",
+          height: "180cm",
+          weight: "75kg",
+          exerciseCount: 5,
+          smokeCount: 0,
+          drinkingCount: 2
+        },
+        loserInfo: {
+          name: "박민수",
+          height: "170cm",
+          weight: "65kg",
+          exerciseCount: 2,
+          smokeCount: 15,
+          drinkingCount: 5
+        }
+      }
+    }
+  ]
+};
+
 export default function ProfilePage({ paramsPromise }) {
     const [userId, setUserId] = useState(null);
     const [profile, setProfile] = useState(null);
-    const [matchResults, setMatchResults] = useState(null);
-    const [loading, setLoading] = useState({
-        profile: true,
-        matchResults: true
-    });
-    const [error, setError] = useState({
-        profile: null,
-        matchResults: null
-    });
+    const [matchHistory, setMatchHistory] = useState(null);
+    const [hasCopied, setHasCopied] = useState(false);
 
     const textColor = useColorModeValue('red.300', 'red.200');
     const bgColor = 'black';
-    const accentColor = 'red.500';
 
+    // 프로필 정보 가져오기
     useEffect(() => {
-        const initProfile = async () => {
+        const fetchProfile = async () => {
             try {
                 const params = await paramsPromise;
                 setUserId(params.id);
-
-                // 프로필 정보와 매치 결과를 병렬로 가져오기
-                const fetchProfile = fetch(`/api/profiles/${params.id}`)
-                    .then(async (response) => {
-                        if (!response.ok) throw new Error('Failed to fetch profile');
-                        const data = await response.json();
-                        setProfile(data);
-                    })
-                    .catch(error => {
-                        console.error('프로필 가져오기 실패:', error);
-                        setError(prev => ({ ...prev, profile: error.message }));
-                        // 임시 프로필 데이터
-                        setProfile({
-                            name: params.id,
-                            level: "위험",
-                            joinDate: "2024-01-01",
-                            lastActive: "2024-03-19"
-                        });
-                    })
-                    .finally(() => {
-                        setLoading(prev => ({ ...prev, profile: false }));
-                    });
-
-                const fetchMatchResults = fetch(`/api/health-match-results?profileId=${params.id}`)
-                    .then(async (response) => {
-                        if (!response.ok) throw new Error('Failed to fetch match results');
-                        const data = await response.json();
-                        setMatchResults(data);
-                    })
-                    .catch(error => {
-                        console.error('전적 가져오기 실패:', error);
-                        setError(prev => ({ ...prev, matchResults: error.message }));
-                        // 임시 전적 데이터
-                        setMatchResults({
-                            totalMatches: 120,
-                            wins: 100,
-                            losses: 20,
-                            healthRisk: 75,
-                            recentMatches: []
-                        });
-                    })
-                    .finally(() => {
-                        setLoading(prev => ({ ...prev, matchResults: false }));
-                    });
-
-                // 병렬로 실행
-                await Promise.allSettled([fetchProfile, fetchMatchResults]);
                 
+                const response = await fetch(`/api/profiles/${params.id}`);
+                if (!response.ok) throw new Error('Failed to fetch profile');
+                const data = await response.json();
+                setProfile(data);
             } catch (error) {
-                console.error('초기화 실패:', error);
+                console.error('프로필 가져오기 실패:', error);
+                setProfile({ ...mockProfile, name: userId || "Unknown Fighter" });
             }
         };
 
-        initProfile();
+        fetchProfile();
     }, [paramsPromise]);
 
-    if (loading.profile && loading.matchResults) {
+    // 매치 결과 가져오기
+    useEffect(() => {
+        const fetchMatchHistory = async () => {
+            if (!userId) return;
+
+            try {                
+
+                // 매치 히스토리 가져오기
+                const historyResponse = await fetch(`/api/match-history?profileId=${userId}`);
+                if (!historyResponse.ok) throw new Error('Failed to fetch match history');
+                const historyData = await historyResponse.json();
+
+                
+                setMatchHistory(historyData);
+
+            } catch (error) {
+                console.error('데이터 가져오기 실패:', error);
+                // 실패 시 mock 데이터 사용
+                setMatchHistory(mockMatchResults);
+            }
+        };
+
+        fetchMatchHistory();
+    }, [userId]);
+
+    const renderProfile = () => {
+        if (!profile) return null;
+
         return (
-            <Box
-                minH="100vh"
-                bg={bgColor}
-                display="flex"
-                alignItems="center"
-                justifyContent="center"
-            >
-                <Text color={textColor} fontSize="xl">
-                    전사 정보를 불러오는 중...
+            <>
+                <Text
+                    fontSize="2xl"
+                    color={textColor}
+                    textAlign="center"
+                    sx={{
+                        animation: `${glitchAnimation} 5s infinite`,
+                    }}
+                >
+                    {profile.name}
                 </Text>
-            </Box>
+                <Text color="gray.400" fontSize="sm" textAlign="center">
+                    위험 등급: {profile.level}
+                </Text>
+                <Text color="gray.400" fontSize="sm" textAlign="center">
+                    첫 입장일: {profile.joinDate}
+                </Text>
+            </>
         );
-    }
+    };
+
+
+    const renderMatchHistory = () => {        
+      if (!matchHistory) return null;
+      console.log(matchHistory);
+        return (
+            <VStack spacing={3} align="stretch" w="full">
+                <Text color="red.400" fontSize="lg" fontWeight="bold">
+                    최근 전적
+                </Text>
+                {matchHistory.match_history.map((match) => (
+                    <Box
+                        key={match.match_id}
+                        bg="rgba(0,0,0,0.3)"
+                        p={4}
+                        borderRadius="md"
+                        border="1px solid"
+                        borderColor={match.result === 'win' ? 'red.500' : 'gray.600'}
+                        _hover={{
+                            bg: 'rgba(0,0,0,0.4)',
+                            transform: 'translateX(5px)',
+                            transition: 'all 0.2s'
+                        }}
+                    >
+                        <Flex justify="space-between" align="center">
+                            <VStack align="start" spacing={1}>
+                                <HStack>
+                                    <Text color={textColor} fontSize="md">
+                                        VS {match.opponent_name}
+                                    </Text>
+                                    <Badge 
+                                        colorScheme={match.result === 'win' ? 'red' : 'gray'}
+                                        variant="solid"
+                                    >
+                                        {match.result === 'win' ? '승리' : '패배'}
+                                    </Badge>
+                                </HStack>
+                                <Text color="gray.500" fontSize="sm">
+                                    {new Date(match.match_date).toLocaleDateString('ko-KR', {
+                                        year: 'numeric',
+                                        month: 'long',
+                                        day: 'numeric',
+                                        hour: '2-digit',
+                                        minute: '2-digit'
+                                    })}
+                                </Text>
+                            </VStack>
+                            <Icon
+                                as={match.result === 'win' ? CheckIcon : CopyIcon}
+                                color={match.result === 'win' ? 'red.500' : 'gray.500'}
+                                w={5}
+                                h={5}
+                            />
+                        </Flex>
+                    </Box>
+                ))}
+            </VStack>
+        );
+    };
+
+    // 클립보드 복사 함수
+    const handleCopyLink = async () => {
+        const link = `${window.location.origin}/form/?inviterId=${userId}`;
+        try {
+            await navigator.clipboard.writeText(link);
+            setHasCopied(true);
+            setTimeout(() => setHasCopied(false), 2000); // 2초 후 상태 초기화
+        } catch (err) {
+            console.error('복사 실패: ', err);
+        }
+    };
 
     return (
         <Box
@@ -204,73 +383,47 @@ export default function ProfilePage({ paramsPromise }) {
                     boxShadow="0 0 20px rgba(255,0,0,0.2)"
                 >
                     <VStack spacing={6} align="stretch">
-                        {!loading.profile && (
-                            <>
-                                <Text
-                                    fontSize="2xl"
-                                    color={textColor}
-                                    textAlign="center"
-                                    sx={{
-                                        animation: `${glitchAnimation} 5s infinite`,
-                                    }}
-                                >
-                                    {profile.name}
-                                </Text>
-                                <Text color="gray.400" fontSize="sm" textAlign="center">
-                                    위험 등급: {profile.level}
-                                </Text>
-                                <Text color="gray.400" fontSize="sm" textAlign="center">
-                                    첫 입장일: {profile.joinDate}
-                                </Text>
-                            </>
-                        )}
+                        {renderProfile()}
+                        <Divider borderColor="red.500" opacity={0.3} />
+                        {renderMatchHistory()}
 
-                        {!loading.matchResults && (
-                            <>
-                                <Box>
-                                    <Text color="red.400" mb={2}>건강 위험도</Text>
-                                    <Progress 
-                                        value={matchResults.healthRisk} 
-                                        colorScheme="red" 
-                                        bg="rgba(255,0,0,0.2)"
-                                        borderRadius="full"
-                                        h="20px"
-                                    />
-                                </Box>
-
-                                <Divider borderColor="red.500" opacity={0.3} />
-
-                                <Flex justify="space-between" align="center">
-                                    <Badge colorScheme="red" p={2} fontSize="md">
-                                        승리: {matchResults.wins}
-                                    </Badge>
-                                    <Badge colorScheme="gray" p={2} fontSize="md">
-                                        패배: {matchResults.losses}
-                                    </Badge>
-                                </Flex>
-                            </>
-                        )}
-
-                        <Button
-                            bg="red.600"
-                            color="white"
-                            size="lg"
-                            _hover={{ bg: 'red.700' }}
-                            _active={{ bg: 'red.800' }}
-                            onClick={() => {
-                                const link = `${window.location.origin}/form/?inviterId=${userId}`;
-                                navigator.clipboard.writeText(link).then(() => {
-                                    alert('도전장 링크가 복사되었습니다!');
-                                }).catch(err => {
-                                    console.error('복사 실패: ', err);
-                                });
-                            }}
-                            sx={{
-                                boxShadow: '0 0 15px rgba(255,0,0,0.4)',
-                            }}
+                        <Tooltip
+                            label={hasCopied ? "복사됨!" : "클립보드에 복사"}
+                            placement="top"
+                            hasArrow
                         >
-                            도전장 보내기
-                        </Button>
+                            <Button
+                                bg="red.600"
+                                color="white"
+                                size="lg"
+                                _hover={{ 
+                                    bg: 'red.700',
+                                    transform: 'translateY(-2px)',
+                                    boxShadow: 'lg'
+                                }}
+                                _active={{ 
+                                    bg: 'red.800',
+                                    transform: 'translateY(0)',
+                                }}
+                                onClick={handleCopyLink}
+                                sx={{
+                                    boxShadow: '0 0 15px rgba(255,0,0,0.4)',
+                                    transition: 'all 0.2s'
+                                }}
+                            >
+                                <HStack spacing={2}>
+                                    <Icon
+                                        as={hasCopied ? CheckIcon : CopyIcon}
+                                        transition="0.2s"
+                                        w={5}
+                                        h={5}
+                                    />
+                                    <Text>
+                                        {hasCopied ? '도전장 복사됨' : '도전장 보내기'}
+                                    </Text>
+                                </HStack>
+                            </Button>
+                        </Tooltip>
                     </VStack>
                 </Box>
 
