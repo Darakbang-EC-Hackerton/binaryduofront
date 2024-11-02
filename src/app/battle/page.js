@@ -6,6 +6,8 @@ import {
   Box, Text, VStack, Progress, Flex, Heading,
   useColorModeValue, Button
 } from '@chakra-ui/react';
+import Cookies from 'js-cookie';
+import { useRouter } from 'next/navigation';
 
 // 깜빡이는 애니메이션을 더 불안정하게 수정
 const blinkingAnimation = keyframes`
@@ -112,7 +114,7 @@ function BattlePage() {
 
   // 4. 데미지 설정
   const DAMAGE = {
-    SUCCESS: 40,
+    SUCCESS: 20,
     PARTIAL: 25
   };
 
@@ -155,7 +157,7 @@ function BattlePage() {
       const messages = [
         "치명적인 일격이 들어갔다!",
         "상대방이 크게 휘청인다!",
-        "강력한 공격이 적중했다!",
+        "���력한 공격이 적��했다!",
         "피할 수 없는 결정타다!"
       ];
       return messages[Math.floor(Math.random() * messages.length)];
@@ -390,15 +392,11 @@ function BattlePage() {
               bg="red.600"
               color="white"
               width="full"
-              _hover={{ bg: 'red.700' }}
-              _active={{ bg: 'red.800' }}
+              height="60px"
+              onClick={handleCheckProfile}
+              _hover={{}}
+              _active={{}}
               boxShadow="0 0 15px rgba(255,0,0,0.4)"
-              onClick={() => {
-                const userId = 'test';        
-                if (userId) {
-                  window.location.href = `/profile/${userId}`;
-                }
-              }}
             >
               내 상태 확인하기
             </Button>
@@ -456,6 +454,17 @@ function BattlePage() {
         </Box>
       </VStack>
     );
+  };
+
+  const router = useRouter();
+
+  const handleCheckProfile = () => {
+    const healthProfileId = Cookies.get('healthProfileId');
+    if (healthProfileId) {
+      router.push(`/profile/${healthProfileId}`);
+    } else {
+      console.error('프로필 ID를 찾을 수 없습니다.');
+    }
   };
 
   return (

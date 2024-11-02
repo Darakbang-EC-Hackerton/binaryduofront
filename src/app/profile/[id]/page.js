@@ -17,7 +17,7 @@ import {
 } from '@chakra-ui/react';
 import { CopyIcon, CheckIcon } from '@chakra-ui/icons';
 import { FaTrophy, FaSkull } from 'react-icons/fa';
-import { useRouter } from 'next/navigation';
+import { useRouter, useParams } from 'next/navigation';
 
 // Mock 데이터
 const MOCK_DATA = {
@@ -83,7 +83,8 @@ const glitchAnimation = keyframes`
   }
 `;
 
-export default function ProfilePage({ paramsPromise }) {
+export default function ProfilePage() {
+    const params = useParams();
     const [userId, setUserId] = useState(null);
     const [profile, setProfile] = useState(null);
     const [matchHistory, setMatchHistory] = useState(null);
@@ -101,16 +102,17 @@ export default function ProfilePage({ paramsPromise }) {
     useEffect(() => {
         const initProfile = async () => {
             try {
-                const params = await paramsPromise;
                 const id = params.id;
+                console.log('id:', id);
                 setUserId(id);
 
                 // 프로필 정보 가져오기 시도
                 try {
-                    const profileRes = await fetch(`https://port-0-healthmatch1-m30h6ofzaa0b4434.sel4.cloudtype.app/api/profiles/${id}`);
+                    const profileRes = await fetch(`/api/profiles/${id}`);
                     if (profileRes.ok) {
                         const data = await profileRes.json();
-                        setProfile(data);
+                        console.log('data:', data);
+                        setProfile(data.profile);
                     } else {
                         throw new Error('Failed to fetch profile');
                     }
@@ -124,10 +126,11 @@ export default function ProfilePage({ paramsPromise }) {
 
                 // 매치 히스토리 가져오기 시도
                 try {
-                    const historyRes = await fetch(`https://port-0-healthmatch1-m30h6ofzaa0b4434.sel4.cloudtype.app/api/match-history?profileId=${id}`);
+                    const historyRes = await fetch(`/api/health-match-results?profileId=${id}`);
                     if (historyRes.ok) {
                         const data = await historyRes.json();
-                        setMatchHistory(data);
+                        console.log('data:', data);
+                        setMatchHistory(data.match_history);
                     } else {
                         throw new Error('Failed to fetch match history');
                     }
@@ -143,8 +146,10 @@ export default function ProfilePage({ paramsPromise }) {
             }
         };
 
-        initProfile();
-    }, [paramsPromise]);
+        if (params.id) {
+            initProfile();
+        }
+    }, [params.id]);
 
     const handleCopyLink = async () => {
         
@@ -318,13 +323,13 @@ export default function ProfilePage({ paramsPromise }) {
                             </Text>
                             {matchHistory.map((match) => (
                                 <Box
-                                    key={match.match_id}
+                                    key={match.matchId}
                                     bg="rgba(0,0,0,0.3)"
                                     p={4}
                                     borderRadius="md"
                                     border="1px solid"
                                     borderColor={match.result === 'win' ? 'red.500' : 'gray.600'}
-                                    onClick={() => handleMatchClick(match.match_id)}
+                                    onClick={() => handleMatchClick(match.matchId)}
                                     position="relative"
                                     role="button"
                                     aria-label="매치 상세 보기"
@@ -337,7 +342,7 @@ export default function ProfilePage({ paramsPromise }) {
                                         <VStack align="start" spacing={1}>
                                             <HStack>
                                                 <Text color={textColor} fontSize="md">
-                                                    VS {match.opponent_name}
+                                                    VS {match.opponentName}
                                                 </Text>
                                                 <Badge 
                                                     colorScheme={match.result === 'win' ? 'red' : 'gray'}
@@ -355,7 +360,7 @@ export default function ProfilePage({ paramsPromise }) {
                                                 </Badge>
                                             </HStack>
                                             <Text color="gray.500" fontSize="sm">
-                                                {new Date(match.match_date).toLocaleDateString('ko-KR', {
+                                                {new Date(match.matchDate).toLocaleDateString('ko-KR', {
                                                     year: 'numeric',
                                                     month: 'long',
                                                     day: 'numeric',

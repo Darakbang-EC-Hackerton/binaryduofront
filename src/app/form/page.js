@@ -94,11 +94,39 @@ function QuestionPoolPage() {
 
   const progress = calculateProgress();
 
+  // 컴포넌트 마운트 시 쿠키 확인 및 처리
+  useEffect(() => {
+    const checkHealthProfile = async () => {
+      const healthProfileId = Cookies.get('healthProfileId');
+      
+      if (healthProfileId && inviterId) {
+        try {
+          // 매치 결과 요청
+          const matchResultResponse = await fetch(`/api/health-match-result?inviterId=${inviterId}&inviteeId=${healthProfileId}`);
+          
+          if (!matchResultResponse.ok) {
+            throw new Error('Failed to get match result');
+          }
+
+          const matchResult = await matchResultResponse.json();
+          const matchId = matchResult;
+          console.log('Match created with ID:', matchId);
+          
+          // battle 페이지로 즉시 이동
+          router.push(`/battle?matchId=${matchId}`);
+        } catch (error) {
+          console.error('Failed to create match:', error);
+        }
+      }
+    };
+
+    checkHealthProfile();
+  }, [inviterId, router]);
+
   const handleSubmit = async () => {
     try {
       setLoading(true);
       
-      // 1. 프로필 생성 요청
       const profileData = {
         height: Number(answers.height),
         weight: Number(answers.weight),
@@ -123,8 +151,13 @@ function QuestionPoolPage() {
       }
 
       const { inviteeId } = await profileResponse.json();
+      
+      // 프로필 ID를 쿠키에 저장
+      Cookies.set('healthProfileId', inviteeId);
+
       console.log('Received inviteeId:', inviteeId);
-      // 2. 매치 결과 요청
+      
+      // 매치 결과 요청
       const matchResultResponse = await fetch(`/api/health-match-result?inviterId=${inviterId}&inviteeId=${inviteeId}`);
       
       if (!matchResultResponse.ok) {
@@ -132,12 +165,9 @@ function QuestionPoolPage() {
       }
 
       const matchResult = await matchResultResponse.json();
-      const matchId  = matchResult;
-      console.log('Received matchResult:', matchResult);
-
+      const matchId = matchResult;
       console.log('Match created with ID:', matchId);
       
-      // 3. battle 페이지로 이동
       router.push(`/battle?matchId=${matchId}`);
       
     } catch (error) {
