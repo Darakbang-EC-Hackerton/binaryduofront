@@ -1,70 +1,68 @@
 'use client';
 import { useEffect, useState } from 'react';
-import {
-  ClipboardButton,
-  ClipboardIconButton,
-  ClipboardInput,
-} from "@/components/ui/clipboard"
-import { InputGroup } from "@/components/ui/input-group"
 import { useRouter } from 'next/navigation';
 import Cookies from 'js-cookie';
-export default function ProfilePage({params}) {
-    const userId=params.id
+import { Box, Heading, Text, Button, VStack, Spinner } from '@chakra-ui/react';
+
+export default function ProfilePage({ paramsPromise }) {
+    const [userId, setUserId] = useState(null);
     const [profile, setProfile] = useState(null);
     const [loading, setLoading] = useState(true);
-  
+
     useEffect(() => {
-      // userId를 이용하여 프로필 정보 가져오기
-      const fetchProfile = async () => {
-        try {
-          const response = await fetch(`https://example.com/api/profile/${userId}`);
-          if (!response.ok) {
-            throw new Error('Network response was not ok');
-          }
-          const data = await response.json();
-          setProfile(data);
-        } catch (error) {
-          console.error('Failed to fetch profile information:', error);
-        } finally {
-          setLoading(false);
+        const getParams = async () => {
+            try {
+                const params = await paramsPromise;
+                setUserId(params.id);
+            } catch (error) {
+                console.error('params 가져오기 실패:', error);
+            }
+        };
+        getParams();
+    }, [paramsPromise]);
+
+    useEffect(() => {
+        if (userId) {
+            const fetchProfile = async () => {
+                try {
+                    const response = await fetch(`https://example.com/api/profile/${userId}`);
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    const data = await response.json();
+                    setProfile(data);
+                } catch (error) {
+                    console.error('프로필 정보를 가져오는데 실패했습니다:', error);
+                } finally {
+                    setLoading(false);
+                }
+            };
+            fetchProfile();
         }
-      };
-  
-      fetchProfile();
     }, [userId]);
-  
-    if (loading) {
-      return <div>Loading...</div>;
-    }
-  
-    // if (!profile) {
-    //   return <div>{userId}님의 정보가 없습니다</div>;
+
+    // if (loading) {
+    //     return <Box display="flex" justifyContent="center" alignItems="center" height="100vh"><Spinner /></Box>;
     // }
-  
+
     return (
-      <div>
-        <h1>프로필</h1>
-        <p>닉네임: {userId} </p>
-        <p>랭킹 등급: A+</p>
-        <button type="button" onClick={() => {
-        const link = `${window.location.origin}/form/?ID=${userId}`;
-
-        navigator.clipboard.writeText(link).then(() => {
-          alert('프로필 링크가 클립보드에 복사되었습니다!');
-        }).catch(err => {
-          console.error('Failed to copy: ', err);
-        });
-      }}>프로필 링크 복사하기</button>
-
-
-        <p>대결 기록:</p>
-        {/* <ul>
-          {profile.battleRecords.map((record, index) => (
-            <li key={index}>VS {record.opponent} - {record.result}</li>
-          ))}
-        </ul> */}
-      </div>
+        <Box p={5}>
+            <VStack spacing={4} align="stretch">
+                <Heading as="h1" size="xl">{userId}.님의 건강 점수는?</Heading>                
+                <Text fontSize="lg">건강 활동 등급: A+</Text>
+                <Button colorScheme="blue" onClick={() => {
+                    const link = `${window.location.origin}/form/?ID=${userId}`;
+                    navigator.clipboard.writeText(link).then(() => {
+                        alert('프로필 링크가 클립보드에 복사되었습니다!');
+                    }).catch(err => {
+                        console.error('복사 실패: ', err);
+                    });
+                }}>
+                    다른 친구에게 (건)강하세요? 묻기
+                </Button>               
+                <Text fontSize="lg">대전 기록</Text>
+                <Text fontSize="lg">승리: 100 패배: 20</Text>
+            </VStack>
+        </Box>
     );
-  }
-  
-  
+}
