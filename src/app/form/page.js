@@ -2,6 +2,8 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Cookies from 'js-cookie';
+import { Button } from '@chakra-ui/react';
+import { Input } from '@chakra-ui/react';
 // 질문 풀 컴포넌트 (기본적인 Next.js 폼 페이지 + 클라이언트 사이드 데이터 패칭)
 
 function QuestionPoolPage() {
@@ -30,7 +32,7 @@ function QuestionPoolPage() {
         } catch (error) {
           console.error('Failed to fetch questions:', error);
           // 데이터가 없을 경우 임시 질문 설정
-          setQuestions(['임시 질문 1', '임시 질문 2', '임시 질문 3']);
+          setQuestions(['키', '몸무게', '일주일 운동 횟수','흡연여부', '이름', '좋아하는 음식']);
         } finally {
           setLoading(false);
         }
@@ -77,19 +79,19 @@ function QuestionPoolPage() {
   
     return (
       <div>
-        <h1>질문 풀</h1>
+        <h1>얼마나 건강하세요?</h1>
         <form>
           {questions.map((question, index) => (
             <div key={index}>
               <label>{question}</label>
-              <input
+              <Input
                 type="text"
                 name={`question-${index}`}
                 onChange={(e) => handleInputChange(e, index)}
               />
             </div>
           ))}
-          <button type="button" onClick={handleOkClick}>OK</button>
+          <Button onClick={handleOkClick}>내 건강 확인하기</Button>
         </form>
       </div>
     );
