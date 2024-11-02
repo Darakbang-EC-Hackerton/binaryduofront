@@ -1,20 +1,11 @@
 'use client';
 import { useEffect, useState, useRef } from 'react';
 import { keyframes } from '@emotion/react';
-import { useRouter, useSearchParams } from 'next/navigation';
-import Cookies from 'js-cookie';
+import { useSearchParams } from 'next/navigation';
 import {
-  Box,
-  Heading,
-  Text,
-  Button,
-  VStack,
-  Flex,
-  Image,
-  useColorModeValue,
-  Progress
+  Box, Text, VStack, Progress, Flex, Heading,
+  useColorModeValue, Button
 } from '@chakra-ui/react';
-
 
 // 깜빡이는 애니메이션을 더 불안정하게 수정
 const blinkingAnimation = keyframes`
@@ -97,42 +88,97 @@ const mockMatchData = {
 };
 
 function BattlePage() {
+  // 1. 기본 상태 및 설정
   const searchParams = useSearchParams();
-  const battleDataStr = searchParams.get('battleData');
-  const battleData = battleDataStr ? JSON.parse(battleDataStr) : mockMatchData;
-  
-  // 승자와 패자 정보 추출
-  const winner = battleData.winnerInfo.name;
-  const loser = battleData.loserInfo.name;
+  const matchId = searchParams.get('matchId');
+  const battleInitialized = useRef(false);
 
-  // 상태 관리
+  // 2. 색상 설정
+  const textColor = useColorModeValue('red.300', 'red.200');
+  const winnerColor = 'yellow.400';
+  const loserColor = 'gray.400';
+
+  // 3. 상태 관리
+  const [battleData, setBattleData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
   const [battleState, setBattleState] = useState({
     currentStep: 0,
     isStarted: false,
     isFinished: false,
-    healthPoints: {
-      [winner]: 100,
-      [loser]: 100
-    },
+    healthPoints: {},
     logs: []
   });
 
-  const [loading, setLoading] = useState(true);
-  const battleInitialized = useRef(false);
-
-  // 데미지 설정
+  // 4. 데미지 설정
   const DAMAGE = {
     SUCCESS: 40,
     PARTIAL: 25
   };
 
-  // 전투 시작 함수
+  // 5. 메시지 생성 함수들
+  const createAttackMessage = (attacker, property) => {
+    const attackMessages = {
+      height: [
+        `${attacker}의 압도적인 신장으로 내려찍기!`,
+        `하늘을 찌르는 듯한 강력한 공격이다!`,
+        `공중에서 내리꽂는 치명타!`
+      ],
+      weight: [
+        `${attacker}의 중량감 있는 몸싸움!`,
+        `온 몸을 실은 강력한 타격이다!`,
+        `압도적인 체중으로 밀어붙인다!`
+      ],
+      exerciseCount: [
+        `${attacker}의 단련된 근력으로 연속 공격!`,
+        `끝없는 체력으로 몰아친다!`,
+        `지칠 줄 모르는 연타 공격!`
+      ],
+      smokeCount: [
+        `${attacker}의 연기 구름 속 기습!`,
+        `자욱한 연기 속에서 공격이 쏟아진다!`,
+        `예측불가한 연막 속 공격!`
+      ],
+      drinkingCount: [
+        `${attacker}의 취권 발동!`,
+        `흔들리는 발걸음으로 오히려 상대를 교란한다!`,
+        `예측불가한 술취한 공격 패턴!`
+      ]
+    };
+
+    const messages = attackMessages[property];
+    return messages[Math.floor(Math.random() * messages.length)];
+  };
+
+  const createResultMessage = (isSuccess, damage) => {
+    if (damage === DAMAGE.SUCCESS) {
+      const messages = [
+        "치명적인 일격이 들어갔다!",
+        "상대방이 크게 휘청인다!",
+        "강력한 공격이 적중했다!",
+        "피할 수 없는 결정타다!"
+      ];
+      return messages[Math.floor(Math.random() * messages.length)];
+    }
+    return "공격이 빗나갔지만 약간의 피해를 입혔다!";
+  };
+
+  // 6. 배틀 진행 함수
   const initiateBattle = async () => {
-    setLoading(true);
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    setLoading(false);
-    setBattleState(prev => ({ ...prev, isStarted: true }));
-    
+    if (!battleData) return;
+
+    const winner = battleData.winnerInfo.name;
+    const loser = battleData.loserInfo.name;
+
+    setBattleState(prev => ({
+      ...prev,
+      isStarted: true,
+      healthPoints: {
+        [winner]: 100,
+        [loser]: 100
+      }
+    }));
+
     const properties = ['height', 'weight', 'exerciseCount', 'smokeCount', 'drinkingCount'];
     
     for (let i = 0; i < properties.length; i++) {
@@ -140,19 +186,10 @@ function BattlePage() {
       const propertyWinner = battleData.propertyWinners[property];
       const propertyLoser = propertyWinner === winner ? loser : winner;
 
-      // 현재 스텝 업데이트
       setBattleState(prev => ({ ...prev, currentStep: i + 1 }));
 
-      // 공격 메시지 생성
-      const attackMessages = {
-        height: `${propertyWinner}의 키로 내려찍기 공격!`,
-        weight: `${propertyWinner}의 체중으로 누르기 공격!`,
-        exerciseCount: `${propertyWinner}의 근력 공격!`,
-        smokeCount: `${propertyWinner}의 연기 구름 공격!`,
-        drinkingCount: `${propertyWinner}의 취권 공격!`
-      };
-
-      // 데미지 계산 및 체력 업데이트
+      const attackMessage = createAttackMessage(propertyWinner, property);
+      const resultMessage = createResultMessage(true, DAMAGE.SUCCESS);
       const damage = DAMAGE.SUCCESS;
       
       setBattleState(prev => {
@@ -166,58 +203,105 @@ function BattlePage() {
           logs: [
             [
               '',
-              `=== ${property.toUpperCase()} 대결 ===`,
-              attackMessages[property],
-              "치명적인 공격이 들어갔다!",
-              `${propertyLoser}에게 ${damage}의 데미지!`,
-              `${propertyLoser}의 남은 체력: ${newHealth}%`
+              `=== ${i + 1}번째 대결: ${property.toUpperCase()} ===`,
+              `${propertyWinner}(이)가 공격 태세를 갖춘다...`,
+              attackMessage,
+              resultMessage,
+              `${propertyLoser}에게 ${damage}의 치명타!`,
+              propertyLoser === winner ? 
+                `${propertyLoser}: "이런... 강하군..."` : 
+                `${propertyLoser}: "크윽... 제법이야..."`
             ],
             ...prev.logs
           ]
         };
       });
 
-      // 딜레이
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      await new Promise(resolve => setTimeout(resolve, 3500));
     }
 
-    // 전투 종료
-    setBattleState(prev => ({ ...prev, isFinished: true }));
+    setBattleState(prev => ({
+      ...prev,
+      isFinished: true,
+      logs: [
+        [
+          '',
+          '=== 결투 종료 ===',
+          `${winner}의 승리!`,
+          winner === battleData.winnerInfo.name ? 
+            '"약한 자는 도태되는 법이지..."' :
+            '"더 강해져서 돌아와라..."'
+        ],
+        ...prev.logs
+      ]
+    }));
   };
 
-  // 컴포넌트 마운트 시 한 번만 실행
+  // 7. 데이터 가져오기
   useEffect(() => {
-    if (!battleInitialized.current) {
-      battleInitialized.current = true;
+    const fetchMatchData = async () => {
+      if (!matchId || battleInitialized.current) return;
+
+      try {
+        const response = await fetch(`/api/health-match-result/${matchId}`);
+        
+        if (!response.ok) {
+          throw new Error('Failed to fetch match data');
+        }
+
+        const data = await response.json();
+        setBattleData(data);
+        battleInitialized.current = true;
+
+      } catch (error) {
+        console.error('Error fetching match data:', error);
+        setBattleData(mockMatchData);
+        battleInitialized.current = true;
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchMatchData();
+  }, [matchId]);
+
+  // 8. 배틀 시작
+  useEffect(() => {
+    if (battleData && !battleState.isStarted) {
       initiateBattle();
     }
-  }, []);
+  }, [battleData]);
 
-  const bgColor = useColorModeValue('gray.900', 'black');
-  const textColor = useColorModeValue('red.300', 'red.200');
-  const accentColor = 'red.500';
-  const winnerColor = 'yellow.400';
-  const loserColor = 'gray.400';
-  
+  // 9. 로딩 상태
   if (loading) {
     return (
-      <Box 
-        minH="100vh" 
-        display="flex" 
-        alignItems="center" 
-        justifyContent="center"
-        bg={bgColor}
-      >      
-        <Text fontSize="2xl" color={textColor}>결투장 입장중...</Text>
+      <Box minH="100vh" display="flex" alignItems="center" justifyContent="center" bg="black">
+        <Text fontSize="2xl" color="red.300">결투장 입장중...</Text>
       </Box>
     );
   }
 
-  if (!battleData) {
-    return <div>No match information available</div>;
+  // 10. 에러 상태
+  if (error) {
+    return (
+      <Box minH="100vh" display="flex" alignItems="center" justifyContent="center" bg="black">
+        <Text fontSize="2xl" color="red.500">결투장 입장 실패...</Text>
+      </Box>
+    );
   }
 
-  const { propertyWinners, playerInfo } = battleData;
+  // 11. 데이터 없음
+  if (!battleData) {
+    return (
+      <Box minH="100vh" display="flex" alignItems="center" justifyContent="center" bg="black">
+        <Text fontSize="2xl" color="red.300">매치 정보를 찾을 수 없습니다...</Text>
+      </Box>
+    );
+  }
+
+  // 승자와 패자 정보 추출
+  const winner = battleData.winnerInfo.name;
+  const loser = battleData.loserInfo.name;
 
   const renderBattleStep = () => {
     if (!battleState.isStarted) return null;
@@ -227,37 +311,57 @@ function BattlePage() {
         {!battleState.isFinished ? (
           <Flex w="full" justify="space-between" px={8} gap={8}>
             <VStack flex={1}>
-              <Progress 
-                value={battleState.healthPoints[winner]} 
-                colorScheme="red" 
+              <Box
                 w="full"
-                h="20px"
-                borderRadius="full"
-                bg="rgba(255,0,0,0.2)"
+                key={`hp-${winner}-${battleState.healthPoints[winner]}`}
                 sx={{
-                  '& > div': {
-                    transition: 'all 0.5s ease-in-out'
-                  }
+                  animation: battleState.logs[0]?.some(log => log.includes(winner)) 
+                    ? `${glitchAnimation} 0.5s ease-out` 
+                    : 'none'
                 }}
-              />
-              <Text color={textColor} fontSize="lg">{battleState.healthPoints[winner]}%</Text>
+              >
+                <Progress 
+                  value={battleState.healthPoints[winner]} 
+                  colorScheme="red" 
+                  w="full"
+                  h="20px"
+                  borderRadius="full"
+                  bg="rgba(255,0,0,0.2)"
+                  sx={{
+                    '& > div': {
+                      transition: 'all 0.5s ease-in-out'
+                    }
+                  }}
+                />
+                <Text color={textColor} fontSize="lg">{battleState.healthPoints[winner]}%</Text>
+              </Box>
             </VStack>
 
             <VStack flex={1}>
-              <Progress 
-                value={battleState.healthPoints[loser]} 
-                colorScheme="red" 
+              <Box
                 w="full"
-                h="20px"
-                borderRadius="full"
-                bg="rgba(255,0,0,0.2)"
+                key={`hp-${loser}-${battleState.healthPoints[loser]}`}
                 sx={{
-                  '& > div': {
-                    transition: 'all 0.5s ease-in-out'
-                  }
+                  animation: battleState.logs[0]?.some(log => log.includes(loser)) 
+                    ? `${glitchAnimation} 0.5s ease-out` 
+                    : 'none'
                 }}
-              />
-              <Text color={textColor} fontSize="lg">{battleState.healthPoints[loser]}%</Text>
+              >
+                <Progress 
+                  value={battleState.healthPoints[loser]} 
+                  colorScheme="red" 
+                  w="full"
+                  h="20px"
+                  borderRadius="full"
+                  bg="rgba(255,0,0,0.2)"
+                  sx={{
+                    '& > div': {
+                      transition: 'all 0.5s ease-in-out'
+                    }
+                  }}
+                />
+                <Text color={textColor} fontSize="lg">{battleState.healthPoints[loser]}%</Text>
+              </Box>
             </VStack>
           </Flex>
         ) : (
@@ -323,12 +427,19 @@ function BattlePage() {
             '&::-webkit-scrollbar-track': {
               background: 'transparent',
             },
-            msOverflowStyle: 'none',  // IE and Edge
-            scrollbarWidth: 'thin',    // Firefox
-            scrollbarColor: 'rgba(255,0,0,0.3) transparent', // Firefox
+            msOverflowStyle: 'none',
+            scrollbarWidth: 'thin',
+            scrollbarColor: 'rgba(255,0,0,0.3) transparent',
           }}
         >
-          <VStack spacing={0} align="stretch">
+          <VStack 
+            spacing={0} 
+            align="stretch"
+            key={battleState.logs.length}
+            sx={{
+              animation: `${glitchAnimation} 0.5s ease-out`,
+            }}
+          >
             {battleState.logs.flat().map((log, index) => (
               <Text
                 key={index}
@@ -337,9 +448,6 @@ function BattlePage() {
                 fontWeight={log.startsWith('===') ? 'bold' : 'normal'}
                 mb={log.startsWith('===') ? 2 : 1}
                 opacity={0.8}
-                sx={{
-                  animation: `${glitchAnimation} 0.5s ease-out`
-                }}
               >
                 {log}
               </Text>
@@ -356,8 +464,8 @@ function BattlePage() {
       bg="black"
       backgroundImage={`
         linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)),
-        url('/blood-texture.jpg'),
-        url('/chain-texture.png')
+        url('/blood-texture.webp'),
+        
       `}
       backgroundBlendMode="overlay"
       backgroundSize="cover, cover"
@@ -378,7 +486,7 @@ function BattlePage() {
       }}
     >
       <VStack spacing={8} align="center" position="relative" zIndex={2}>
-        {/* AI 분석 결과가 기였다는 것을 알리는 메시지 */}
+        {/* AI 분석 결과가 사기였다는 것을 알리는 메시지 */}
         <Box
           position="absolute"
           top={0}

@@ -39,8 +39,8 @@ function QuestionPoolPage() {
     name: '',
   });
   const [fakeAnswers, setFakeAnswers] = useState({
-    sleepHours: '',
-    mealsPerDay: '',
+    sleepHours: 0,
+    mealsPerDay: 0,
     hobby: '',
     sittingHours: '',
   });
@@ -98,33 +98,46 @@ function QuestionPoolPage() {
     try {
       setLoading(true);
       
-      // 실제 서버 API 주소 사용
-      const response = await fetch('https://port-0-healthmatch1-m30h6ofzaa0b4434.sel4.cloudtype.app/api/submit', {
+      // 1. 프로필 생성 요청
+      const profileData = {
+        height: Number(answers.height),
+        weight: Number(answers.weight),
+        exerciseCount: Number(answers.workoutCount),
+        smokeCount: Number(answers.smokingCount),
+        drinkCount: Number(answers.drinkingCount),
+        name: answers.name
+      };
+
+      console.log('Sending profile data:', profileData);
+
+      const profileResponse = await fetch('/api/profiles', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ 
-          inviterId: inviterId,
-          inviteeData: {
-            height: answers.height,
-            weight: answers.weight,
-            workoutCount: answers.workoutCount,
-            smokingCount: answers.smokingCount,
-            drinkingCount: answers.drinkingCount,
-            name: answers.name
-          }
-        })
+        body: JSON.stringify(profileData)
       });
 
-      if (!response.ok) {
-        throw new Error('Failed to submit data');
+      if (!profileResponse.ok) {
+        throw new Error('Failed to create profile');
       }
 
-      const data = await response.json();
-      const { matchId } = data;
+      const { inviteeId } = await profileResponse.json();
+      console.log('Received inviteeId:', inviteeId);
+      // 2. 매치 결과 요청
+      const matchResultResponse = await fetch(`/api/health-match-result?inviterId=${inviterId}&inviteeId=${inviteeId}`);
       
-      // battle 페이지로 이동
+      if (!matchResultResponse.ok) {
+        throw new Error('Failed to get match result');
+      }
+
+      const matchResult = await matchResultResponse.json();
+      const matchId  = matchResult;
+      console.log('Received matchResult:', matchResult);
+
+      console.log('Match created with ID:', matchId);
+      
+      // 3. battle 페이지로 이동
       router.push(`/battle?matchId=${matchId}`);
       
     } catch (error) {
@@ -394,7 +407,7 @@ function QuestionPoolPage() {
                   </Text>
                 </FormLabel>
                 <Slider
-                  defaultValue={7}
+                  defaultValue={0}
                   min={0}
                   max={12}
                   step={0.5}
@@ -429,7 +442,7 @@ function QuestionPoolPage() {
                   </Text>
                 </FormLabel>
                 <Slider
-                  defaultValue={3}
+                  defaultValue={1}
                   min={1}
                   max={5}
                   step={1}
@@ -480,7 +493,7 @@ function QuestionPoolPage() {
                   </Text>
                 </FormLabel>
                 <Slider
-                  defaultValue={8}
+                  defaultValue={0}
                   min={0}
                   max={16}
                   step={0.5}
