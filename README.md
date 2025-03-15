@@ -1,4 +1,4 @@
-![image](https://github.com/user-attachments/assets/c2f0909d-9304-4424-8b1c-f50b3f6b2345)# 세부 내용은 아래 노션 링크를 참조해주세요
+# 세부 내용은 아래 노션 링크를 참조해주세요
 https://alder-roquefort-416.notion.site/1b5969e497a280b3891be91178b2cdab
 
 
