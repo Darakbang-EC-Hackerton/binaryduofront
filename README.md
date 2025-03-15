@@ -9,8 +9,6 @@ https://alder-roquefort-416.notion.site/1b5969e497a280b3891be91178b2cdab
 
 ![image](https://github.com/user-attachments/assets/3491cf6b-ba66-4fbf-8b00-39a291bf8919)
 
-https://github.com/Darakbang-EC-Hackerton/HealthMatch
-
 ## 프로젝트 동기
 
 - 현대인들이 바쁜 일상 속에서 건강을 제대로 챙기지 못하는 경우가 많아, 누구나 쉽게 접근할 수 있는 건강 관리 서비스를 제공하고자 이 프로젝트를 시작하게 되었습니다.
