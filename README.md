@@ -1,36 +1,30 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
+![image](https://github.com/user-attachments/assets/c2f0909d-9304-4424-8b1c-f50b3f6b2345)# 세부 내용은 아래 노션 링크를 참조해주세요
+https://alder-roquefort-416.notion.site/1b5969e497a280b3891be91178b2cdab
 
-## Getting Started
 
-First, run the development server:
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+# (건)강하세요?
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+2024 서울과기대 컴퓨터공학과 동아리 연합 해커톤 1등 (1박 2일)
+![image](https://github.com/user-attachments/assets/3491cf6b-ba66-4fbf-8b00-39a291bf8919)
 
-You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+https://github.com/Darakbang-EC-Hackerton/HealthMatch
 
-## Learn More
+## 프로젝트 동기
 
-To learn more about Next.js, take a look at the following resources:
+- 현대인들이 바쁜 일상 속에서 건강을 제대로 챙기지 못하는 경우가 많아, 누구나 쉽게 접근할 수 있는 건강 관리 서비스를 제공하고자 이 프로젝트를 시작하게 되었습니다.
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 프로젝트 목적
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### 1. 일상생활 속 상대방에게 건강 안부 묻기
 
-## Deploy on Vercel
+- 현대인들이 우리 서비스를 통해서 상대방에게 건강 안부를 물어보고, 상대방은 자신의 건강정보를 입력함으로써 건강 상태를 점검하게 해보자.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+### 2. 건강 활동 동기 부여
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- 입력한 건강 정보를 바탕으로 건강 프로필을 만들 수 있고, 건강 프로필을 통해  자신의 건강상태를 한 눈에 파악할 수 있습니다.
+- 건강 활동을 통해 본인의 건강 수치가 시각적으로 개선 되는 것을 확인함으로써 사용자는 건강 활동에 대한 성취감을 느끼고 동기 부여를 받을 수 있습니다.
+
+## 백엔드 레포지토리
+https://github.com/Darakbang-EC-Hackerton/HealthMatch
