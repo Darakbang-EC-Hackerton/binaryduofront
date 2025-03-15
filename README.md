@@ -6,8 +6,8 @@ https://alder-roquefort-416.notion.site/1b5969e497a280b3891be91178b2cdab
 # (건)강하세요?
 
 2024 서울과기대 컴퓨터공학과 동아리 연합 해커톤 1등 (1박 2일)
-![image](https://github.com/user-attachments/assets/3491cf6b-ba66-4fbf-8b00-39a291bf8919)
 
+![image](https://github.com/user-attachments/assets/3491cf6b-ba66-4fbf-8b00-39a291bf8919)
 
 https://github.com/Darakbang-EC-Hackerton/HealthMatch
 
